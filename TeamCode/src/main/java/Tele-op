@@ -1,0 +1,185 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp
+public class _20245TT5intothedeep3 extends LinearOpMode {
+  private DcMotor intakeArmMotor;
+  private DcMotor mainArmMotor;
+  private DcMotor backLeftMotor;
+  private DcMotor backRightMotor;
+  private DcMotor frontLeftMotor;
+  private DcMotor frontRightMotor;
+  private Servo clawServo;
+  private CRServo intakeServo;
+  private IMU imu;
+  private double denominator;
+  private double botHeading;
+  private double rotX;
+  private double rotY;
+  private boolean slowDrive = false;
+  private boolean a1 = false;
+  private boolean slowArm = false;
+  private boolean claw = false;
+  private boolean b2 = false;
+  private boolean a2 = false;
+  private double driveCoefficient;
+  private double armCoefficient;
+  
+  private void telem(){
+    telemetry.addData("lstick y1", -gamepad1.left_stick_y);
+    telemetry.addData("lstick x1", -gamepad1.left_stick_x);
+    telemetry.addData("rstick x1", -gamepad1.right_stick_x);
+    telemetry.addData("rstick y2", gamepad2.right_stick_y);
+    telemetry.addData("lstick y2", gamepad2.left_stick_y);
+    telemetry.addData("slow drive", slowDrive);
+    telemetry.addData("slow arm", slowArm);
+    telemetry.addData("claw", claw);
+    telemetry.addData("reset", gamepad1.back);
+  }
+  
+  private void mecanumDrive( double y, double x, double rx){
+            if (gamepad1.back) {
+              imu = hardwareMap.get(IMU.class, "imu");
+              IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                  RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
+                  RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+              imu.initialize(parameters);
+              imu.resetYaw();
+            }
+            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+            denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            double frontLeftPower = (rotY + rotX + rx) / denominator;
+            double backLeftPower = (rotY - rotX + rx) / denominator;
+            double frontRightPower = (rotY - rotX - rx) / denominator;
+            double backRightPower = (rotY + rotX - rx) / denominator;
+            if (slowDrive){
+              driveCoefficient = 0.25;
+            } else {
+              driveCoefficient = 1.;
+            }
+            frontLeftMotor.setPower(frontLeftPower * driveCoefficient);
+            backLeftMotor.setPower(backLeftPower * driveCoefficient);
+            frontRightMotor.setPower(frontRightPower * driveCoefficient);
+            backRightMotor.setPower(backRightPower * driveCoefficient);
+   }
+  
+  private void arm(){
+    if (slowArm){
+      armCoefficient = 0.66;
+    } else {
+      armCoefficient = 1.;
+    }
+    if (claw) {
+        clawServo.setPosition(.85);
+      } else {
+        clawServo.setPosition(0.65);
+    } 
+    if (gamepad2.left_bumper) {
+      intakeServo.setPower(1);
+    } else if (gamepad2.right_bumper) {
+      intakeServo.setPower(-1);
+    } else {
+      intakeServo.setPower(0);
+    }
+    if ((gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.x || gamepad2.y)){
+      if (gamepad2.y){
+        mainArmMotor.setTargetPosition(2122);
+        intakeArmMotor.setTargetPosition(0);
+      } else if (gamepad2.x){
+        mainArmMotor.setTargetPosition(1077);
+        intakeArmMotor.setTargetPosition(0);
+      } else if (gamepad2.dpad_down){
+        mainArmMotor.setTargetPosition(547);
+        intakeArmMotor.setTargetPosition(281);
+      } else{
+        mainArmMotor.setTargetPosition(3778);
+        intakeArmMotor.setTargetPosition(313);
+      }
+      mainArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      intakeArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      if (mainArmMotor.getTargetPosition() > mainArmMotor.getCurrentPosition()){
+          mainArmMotor.setPower(.8);
+      } else if(mainArmMotor.getTargetPosition()< mainArmMotor.getCurrentPosition()){
+          mainArmMotor.setPower(-.8);
+      }else{
+          mainArmMotor.setPower(0);
+      }
+      if (intakeArmMotor.getTargetPosition() > intakeArmMotor.getCurrentPosition()){
+          intakeArmMotor.setPower(0.5);
+      } else if(intakeArmMotor.getTargetPosition() < intakeArmMotor.getCurrentPosition()){
+          intakeArmMotor.setPower(-0.5);
+      }else{
+          intakeArmMotor.setPower(0);
+      }      
+    }
+    if (!(mainArmMotor.isBusy()||intakeArmMotor.isBusy())){
+      mainArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+      intakeArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+      mainArmMotor.setPower(-gamepad2.left_stick_y * armCoefficient);
+      intakeArmMotor.setPower(gamepad2.right_stick_y * armCoefficient);
+    }
+  }
+  
+  @Override
+  public void runOpMode() {
+    //Initializing variables
+    intakeArmMotor = hardwareMap.get(DcMotor.class, "intakeArmMotor");
+    mainArmMotor = hardwareMap.get(DcMotor.class, "mainArmMotor");
+    intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
+    clawServo = hardwareMap.get(Servo.class, "clawServo");
+    intakeArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    mainArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    mainArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    intakeArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    
+    frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
+    backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
+    frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
+    backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+    frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+    backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+    frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    
+    imu = hardwareMap.get(IMU.class, "imu");
+    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
+        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+    imu.initialize(parameters);
+    
+    waitForStart();
+    if (isStopRequested()) return;
+        while (opModeIsActive()) {
+            if (!gamepad1.a && a1){
+              slowDrive = !slowDrive;
+            }
+            a1 = gamepad1.a;
+            if (!gamepad2.a && a2){
+              slowArm = !slowArm;
+            }
+            a2 = gamepad2.a;
+            if (!gamepad2.b && b2){
+              claw = !claw;
+            }
+            b2 = gamepad2.b;
+            arm();
+            mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            telem();
+            telemetry.update();
+        }        
+  }
+}
