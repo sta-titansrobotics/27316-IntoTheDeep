@@ -1,0 +1,102 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@Autonomous(name = "_20245TT5intothedeepautojava")
+public class _20245TT5intothedeepauto extends LinearOpMode {
+
+  private DcMotor frontLeftMotor;
+  private DcMotor backRightMotor;
+  private CRServo intakeServo;
+  private Servo clawServo;
+  private DcMotor backLeftMotor;
+  private DcMotor frontRightMotor;
+  private DcMotor mainArmMotor;
+  private DcMotor intakeArmMotor;
+
+  private void motor(double fl, double fr, double bl, double br, int t){
+    frontLeftMotor.setPower(-fl);
+    frontRightMotor.setPower(-fr);
+    backLeftMotor.setPower(bl);
+    backRightMotor.setPower(br);
+    sleep(t);
+    
+    frontLeftMotor.setPower(0);
+    frontRightMotor.setPower(0);
+    backLeftMotor.setPower(0);
+    backRightMotor.setPower(0);
+  }
+  private void motor(double p, int t){
+    frontLeftMotor.setPower(-p);
+    frontRightMotor.setPower(-p);
+    backLeftMotor.setPower(p);
+    backRightMotor.setPower(p);
+    sleep(t);
+    
+    frontLeftMotor.setPower(0);
+    frontRightMotor.setPower(0);
+    backLeftMotor.setPower(0);
+    backRightMotor.setPower(0);
+  }
+  
+  
+  private void arm(double ma, double ia, int t){
+    mainArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    intakeArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    mainArmMotor.setPower(ma);
+    intakeArmMotor.setPower(ia);
+    sleep(t);
+    mainArmMotor.setPower(0);
+    intakeArmMotor.setPower(0);
+  }
+  @Override
+  public void runOpMode() {
+    //initializing variables
+    frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
+    backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
+    backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
+    frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
+    intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
+    clawServo = hardwareMap.get(Servo.class, "clawServo");
+    intakeArmMotor = hardwareMap.get(DcMotor.class, "intakeArmMotor");
+    mainArmMotor = hardwareMap.get(DcMotor.class, "mainArmMotor");
+    
+    frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+    backRightMotor.setDirection(DcMotor.Direction.REVERSE);
+    intakeArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    mainArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    mainArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    intakeArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    mainArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    intakeArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    waitForStart();
+    if (isStopRequested()) return;
+        
+      // Put run blocks here.
+      clawServo.setPosition(.9);
+      sleep(100);
+      arm(1, 0, 200);
+      sleep(100);
+      
+      motor(.8,.7,.8,.7, 500);
+      arm(1, 0, 900);
+      motor(.5,310);
+      sleep(100);
+      arm(-.7,0,620);
+      clawServo.setPosition(.605);
+      arm(1,0,400);
+      motor(-.5,400);
+      while (opModeIsActive()) {
+        
+      }
+  
+  }
+}
