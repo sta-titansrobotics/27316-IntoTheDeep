@@ -48,11 +48,11 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
   
   private void mecanumDrive( double y, double x, double rx){
             if (gamepad1.back) {
-              imu = hardwareMap.get(IMU.class, "imu");
-              IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                  RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
-                  RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
-              imu.initialize(parameters);
+              //imu = hardwareMap.get(IMU.class, "imu");
+              //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                //  RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
+                  //RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+              //imu.initialize(parameters);
               imu.resetYaw();
             }
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -77,14 +77,13 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
   
   private void arm(){
     if (slowArm){
-      armCoefficient = 0.66;
+      armCoefficient = 0.62;
     } else {
       armCoefficient = 1.;
-    }
-    if (claw) {
-        clawServo.setPosition(.85);
+    }    if (claw) {
+        clawServo.setPosition(.9);
       } else {
-        clawServo.setPosition(0.65);
+        clawServo.setPosition(0.67);
     } 
     if (gamepad2.left_bumper) {
       intakeServo.setPower(1);
@@ -95,14 +94,14 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
     }
     if ((gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.x || gamepad2.y)){
       if (gamepad2.y){
-        mainArmMotor.setTargetPosition(2122);
+        mainArmMotor.setTargetPosition(2272);
         intakeArmMotor.setTargetPosition(0);
       } else if (gamepad2.x){
         mainArmMotor.setTargetPosition(1077);
         intakeArmMotor.setTargetPosition(0);
       } else if (gamepad2.dpad_down){
-        mainArmMotor.setTargetPosition(547);
-        intakeArmMotor.setTargetPosition(281);
+        mainArmMotor.setTargetPosition(15);
+        intakeArmMotor.setTargetPosition(0);
       } else{
         mainArmMotor.setTargetPosition(3778);
         intakeArmMotor.setTargetPosition(313);
@@ -112,7 +111,7 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
       if (mainArmMotor.getTargetPosition() > mainArmMotor.getCurrentPosition()){
           mainArmMotor.setPower(.8);
       } else if(mainArmMotor.getTargetPosition()< mainArmMotor.getCurrentPosition()){
-          mainArmMotor.setPower(-.8);
+          mainArmMotor.setPower(-.8); 
       }else{
           mainArmMotor.setPower(0);
       }
@@ -122,13 +121,18 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
           intakeArmMotor.setPower(-0.5);
       }else{
           intakeArmMotor.setPower(0);
-      }      
+      }
+      
     }
     if (!(mainArmMotor.isBusy()||intakeArmMotor.isBusy())){
       mainArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
       intakeArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-      mainArmMotor.setPower(-gamepad2.left_stick_y * armCoefficient);
       intakeArmMotor.setPower(gamepad2.right_stick_y * armCoefficient);
+      if (mainArmMotor.getCurrentPosition() < 3000){
+        mainArmMotor.setPower(-gamepad2.left_stick_y * armCoefficient + 0.15);
+      }else{
+        mainArmMotor.setPower(-gamepad2.left_stick_y * armCoefficient);
+      }
     }
   }
   
@@ -161,6 +165,8 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
         RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
     imu.initialize(parameters);
     
+    
+    
     waitForStart();
     if (isStopRequested()) return;
         while (opModeIsActive()) {
@@ -180,6 +186,10 @@ public class _20245TT5intothedeep3 extends LinearOpMode {
             mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
             telem();
             telemetry.update();
-        }        
+        }
+        
   }
 }
+
+
+
