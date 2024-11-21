@@ -17,7 +17,13 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
   private DcMotor frontRightMotor;
   private DcMotor mainArmMotor;
   private DcMotor intakeArmMotor;
-
+  
+  private void telem(){
+    telemetry.addData("frPos", frontRightMotor.getCurrentPosition());
+    telemetry.addData("flPos", frontLeftMotor.getCurrentPosition());
+    telemetry.addData("brPos", backRightMotor.getCurrentPosition());
+    telemetry.addData("blPos", backLeftMotor.getCurrentPosition());
+  }
   private void motor(double fl, double fr, double bl, double br, int t){
     frontLeftMotor.setPower(-fl);
     frontRightMotor.setPower(-fr);
@@ -42,6 +48,18 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     backLeftMotor.setPower(0);
     backRightMotor.setPower(0);
   }
+  private void motor(double l, double r, int t){
+    frontLeftMotor.setPower(-l);
+    frontRightMotor.setPower(-r);
+    backLeftMotor.setPower(l);
+    backRightMotor.setPower(r);
+    sleep(t);
+    
+    frontLeftMotor.setPower(0);
+    frontRightMotor.setPower(0);
+    backLeftMotor.setPower(0);
+    backRightMotor.setPower(0);
+  }
   
   
   private void arm(double ma, double ia, int t){
@@ -53,6 +71,43 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     mainArmMotor.setPower(0);
     intakeArmMotor.setPower(0);
   }
+  
+  private void arm(int ma, int ia){
+    /*if ((gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.x || gamepad2.y)){
+      if (gamepad2.y){
+        mainArmMotor.setTargetPosition(2122);
+        intakeArmMotor.setTargetPosition(0);
+      } else if (gamepad2.x){
+        mainArmMotor.setTargetPosition(1077);
+        intakeArmMotor.setTargetPosition(0);
+      } else if (gamepad2.dpad_down){
+        mainArmMotor.setTargetPosition(547);
+        intakeArmMotor.setTargetPosition(281);
+      } else{
+        mainArmMotor.setTargetPosition(3778);
+        intakeArmMotor.setTargetPosition(313);
+      }*/
+      mainArmMotor.setTargetPosition(ma);
+      intakeArmMotor.setTargetPosition(ia);
+      mainArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      intakeArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      if (mainArmMotor.getTargetPosition() > mainArmMotor.getCurrentPosition()){
+          mainArmMotor.setPower(.7);
+      } else if(mainArmMotor.getTargetPosition()< mainArmMotor.getCurrentPosition()){
+          mainArmMotor.setPower(-.7);
+      }else{
+          mainArmMotor.setPower(0);
+      }
+      if (intakeArmMotor.getTargetPosition() > intakeArmMotor.getCurrentPosition()){
+          intakeArmMotor.setPower(0.5);
+      } else if(intakeArmMotor.getTargetPosition() < intakeArmMotor.getCurrentPosition()){
+          intakeArmMotor.setPower(-0.5);
+      }else{
+          intakeArmMotor.setPower(0);
+      }
+      sleep(100);
+  }
+
   @Override
   public void runOpMode() {
     //initializing variables
@@ -86,16 +141,50 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
       arm(1, 0, 200);
       sleep(100);
       
-      motor(.8,.7,.8,.7, 500);
+      motor(.8,.7,.8,.7, 485);
       arm(1, 0, 900);
       motor(.5,310);
       sleep(100);
-      arm(-.7,0,620);
+      arm(-.6,0,620);
       clawServo.setPosition(.605);
       arm(1,0,400);
       motor(-.5,400);
+      
+      
+      arm(10, 200);
+      motor(.8,-.8,352);
+      sleep(700);
+      intakeServo.setPower(1);
+      motor(.8,520);
+      motor(.3,1100);
+      sleep(1000);
+      intakeServo.setPower(0);
+      motor(.8,-.9,390);
+      motor(.8, -.6, .6, .8, 550);
+      sleep(200);
+      intakeServo.setPower(-1);
+      sleep(500);
+      
+      
+      intakeServo.setPower(0);
+      motor(-.8,.8,680);
+      arm(10, 210);
+      intakeServo.setPower(1);
+      motor(.8,130);
+      motor(.3,1000);
+      sleep(1000);
+      intakeServo.setPower(0);
+      motor(.8,-.8,700);
+      motor(0.8,400);
+      intakeServo.setPower(-1);
+      sleep(1200);
+      arm(10,0);
+      intakeServo.setPower(0);
+      motor(-.8,.8,800);
+      motor(-.8,550);
       while (opModeIsActive()) {
-        
+        telem();
+        telemetry.update();
       }
   
   }
