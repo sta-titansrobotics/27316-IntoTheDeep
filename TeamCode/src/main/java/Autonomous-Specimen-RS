@@ -6,13 +6,14 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name = "_20245TT5intothedeepautojava")
+@Autonomous(name = "20245TT5intothedeepautojava")
 public class _20245TT5intothedeepauto extends LinearOpMode {
 
   private DcMotor frontLeftMotor;
   private DcMotor backRightMotor;
   private CRServo intakeServo;
-  private Servo clawServo;
+  private CRServo specLeftServo;
+  private CRServo specRightServo;
   private DcMotor backLeftMotor;
   private DcMotor frontRightMotor;
   private DcMotor mainArmMotor;
@@ -24,7 +25,7 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     telemetry.addData("brPos", backRightMotor.getCurrentPosition());
     telemetry.addData("blPos", backLeftMotor.getCurrentPosition());
   }
-  private void motor(double fl, double fr, double bl, double br, int t){
+  private void drive(double fl, double fr, double bl, double br, int t){
     frontLeftMotor.setPower(-fl);
     frontRightMotor.setPower(-fr);
     backLeftMotor.setPower(bl);
@@ -36,7 +37,7 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     backLeftMotor.setPower(0);
     backRightMotor.setPower(0);
   }
-  private void motor(double p, int t){
+  private void drive(double p, int t){
     frontLeftMotor.setPower(-p);
     frontRightMotor.setPower(-p);
     backLeftMotor.setPower(p);
@@ -48,7 +49,7 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     backLeftMotor.setPower(0);
     backRightMotor.setPower(0);
   }
-  private void motor(double l, double r, int t){
+  private void drive(double l, double r, int t){
     frontLeftMotor.setPower(-l);
     frontRightMotor.setPower(-r);
     backLeftMotor.setPower(l);
@@ -73,20 +74,6 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
   }
   
   private void arm(int ma, int ia){
-    /*if ((gamepad2.dpad_down || gamepad2.dpad_up || gamepad2.x || gamepad2.y)){
-      if (gamepad2.y){
-        mainArmMotor.setTargetPosition(2122);
-        intakeArmMotor.setTargetPosition(0);
-      } else if (gamepad2.x){
-        mainArmMotor.setTargetPosition(1077);
-        intakeArmMotor.setTargetPosition(0);
-      } else if (gamepad2.dpad_down){
-        mainArmMotor.setTargetPosition(547);
-        intakeArmMotor.setTargetPosition(281);
-      } else{
-        mainArmMotor.setTargetPosition(3778);
-        intakeArmMotor.setTargetPosition(313);
-      }*/
       mainArmMotor.setTargetPosition(ma);
       intakeArmMotor.setTargetPosition(ia);
       mainArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -116,7 +103,8 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
     frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
     intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
-    clawServo = hardwareMap.get(Servo.class, "clawServo");
+    specLeftServo = hardwareMap.get(CRServo.class, "specimenIntakeLeft");
+    specRightServo = hardwareMap.get(CRServo.class, "specimenIntakeRight");
     intakeArmMotor = hardwareMap.get(DcMotor.class, "intakeArmMotor");
     mainArmMotor = hardwareMap.get(DcMotor.class, "mainArmMotor");
     
@@ -134,54 +122,83 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
     intakeArmMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     waitForStart();
     if (isStopRequested()) return;
-        
-      // Put run blocks here.
-      clawServo.setPosition(.9);
-      sleep(100);
-      arm(1, 0, 200);
-      sleep(100);
+        telem();
+        telemetry.update();
       
-      motor(.8,.7,.8,.7, 485);
-      arm(1, 0, 900);
-      motor(.5,310);
-      sleep(100);
-      arm(-.6,0,620);
-      clawServo.setPosition(.605);
-      arm(1,0,400);
-      motor(-.5,400);
+      // CODE FOR AUTO STARTS HERE
       
-      
+      //place first specimen
+      arm(2157,1); //Moves main arm to pos of first number and intake arm to pos of second number 
+      sleep(800); // waits for that number of ms before moving on, this block is here to give arm time to raise
+      drive(.8,.7,.8,.7, 200); // drive with 5 numbers in brackets means setting each motor power individually[front left, front right, back left, back right] with last number being how long it will run in ms
+      drive(.5,1400); // drive with 2 numbers means setting all mtors to first number and second being time to run motor for in ms
+
+      // lowers arm after placing specimen
+      arm(1700,1);
+      sleep(300);
+
+      //spins to remove specimen if placing was unsuccessful
+      specRightServo.setPower(-1);//sets power of the specimen servo
+      specLeftServo.setPower(1);// since sides need to be opposite directions the rs is set to negative at the start
+
+      // back up to prepare to pick up next piece
+      drive(-.5,650); 
       arm(10, 200);
-      motor(.8,-.8,352);
+      drive(.8,-.8,360); // 3 numbers in drive sets left side motors to first value and rs motors to second, last number is still time in ms as usual
       sleep(700);
-      intakeServo.setPower(1);
-      motor(.8,520);
-      motor(.3,1100);
-      sleep(1000);
+      specRightServo.setPower(0);
+      specLeftServo.setPower(0);
+
+      // moves to pick up first sample
+      intakeServo.setPower(1); // sets power of intake servo
+      drive(.8,520);
+      drive(.3,1150);
+      sleep(500);
       intakeServo.setPower(0);
-      motor(.8,-.9,390);
-      motor(.8, -.6, .6, .8, 550);
+
+      // turns to place sample in observation zone
+      drive(.8,-.9,360);
+      drive(.8, -.6, .6, .8, 400);
+      drive(.5,300);
       sleep(200);
       intakeServo.setPower(-1);
-      sleep(500);
-      
-      
-      intakeServo.setPower(0);
-      motor(-.8,.8,680);
-      arm(10, 210);
-      intakeServo.setPower(1);
-      motor(.8,130);
-      motor(.3,1000);
       sleep(1000);
       intakeServo.setPower(0);
-      motor(.8,-.8,700);
-      motor(0.8,400);
-      intakeServo.setPower(-1);
-      sleep(1200);
+
+      // backs behind second sample to push it with robot
+      drive(-.6,350);
       arm(10,0);
-      intakeServo.setPower(0);
-      motor(-.8,.8,800);
-      motor(-.8,550);
+      drive(-.7,0,0,-.7,1550);      
+
+      //pushing sample
+      drive(.8,.5,.8,.6, 1500);
+
+      //back up to give time to line up next specimen
+      drive(-.8, 600);
+      sleep(3000);
+
+      // picks up second specimen
+      specRightServo.setPower(1);
+      specLeftServo.setPower(-1);
+      drive(.3,1200);
+      specRightServo.setPower(0);
+      specLeftServo.setPower(0);
+
+      //moves into position for second specimen
+      drive(.8,-.9,860);
+      drive(-.8,.8,.8,-.8, 1500);
+      arm(2165,1);
+      sleep(1000);
+
+      // Hangs second specimen
+      drive(.8,.7,.8,.7, 800);
+      arm(1700,1);
+
+      // Moves into observation 
+      drive(-.8,-.7,-.8,-.7, 600);
+      drive(.8,-.8,-.8,.8, 1600);
+
+      
       while (opModeIsActive()) {
         telem();
         telemetry.update();
