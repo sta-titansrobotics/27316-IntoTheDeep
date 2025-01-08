@@ -128,7 +128,7 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
       // CODE FOR AUTO STARTS HERE
       
       //place first specimen
-      arm(2157,1); //Moves main arm to pos of first number and intake arm to pos of second number 
+      arm(2152,1); //Moves main arm to pos of first number and intake arm to pos of second number 
       sleep(800); // waits for that number of ms before moving on, this block is here to give arm time to raise
       drive(.8,.7,.8,.7, 200); // drive with 5 numbers in brackets means setting each motor power individually[front left, front right, back left, back right] with last number being how long it will run in ms
       drive(.5,1400); // drive with 2 numbers means setting all mtors to first number and second being time to run motor for in ms
@@ -186,8 +186,9 @@ public class _20245TT5intothedeepauto extends LinearOpMode {
 
       //moves into position for second specimen
       drive(.8,-.9,860);
+      drive(-.2,700);
       drive(-.8,.8,.8,-.8, 1500);
-      arm(2165,1);
+      arm(2152,1);
       sleep(1000);
 
       // Hangs second specimen
